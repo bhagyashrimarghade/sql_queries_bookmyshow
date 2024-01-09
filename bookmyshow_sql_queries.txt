@@ -1,0 +1,175 @@
+#Tables which are required for bookmyshow db
+1. movies - movie_id, movie_name, movie_type, movie_language,release_date.
+2.cities -  city_id,city_name 
+3. theatres - theatre_id, city_id,theatre_name
+4. screens - screen_id, theatre_id, screen_name
+5. shows - show_id,screen_id,movie_id,theatre_id,show_time,date
+6. users -  user_id, username, email
+7.booking - booking_id, user_id , show_id,num_tickets, booking_time
+8. seats -  seat_id,show_id,seat_number,is_booked
+
+-----------------------------------------------------------------------------------------------------------
+
+# Creating movies
+CREATE TABLE movies
+(movie_id int NOT NULL AUTO_INCREMENT primary key,
+movie_name varchar(100) not null ,
+movie_type varchar(100) not null ,
+movie_language varchar(50),
+release_date date,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
+
+# Creating cities
+CREATE Table cities
+(   city_id int not null AUTO_INCREMENT primary key,
+    city_name varchar(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+# Creating theatres
+Create Table theatres (
+    theatre_id int not null AUTO_INCREMENT PRIMARY KEY,
+    city_id int not null ,
+    theatre_name varchar(100) not null ,
+    FOREIGN KEY (city_id) REFERENCES cities(city_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+# creating screens for shows
+create table screens (
+    screen_id int not null AUTO_INCREMENT PRIMARY KEY,
+    theatre_id int not null,
+    screen_name varchar(100) not null ,
+    FOREIGN KEY (theatre_id) REFERENCES theatres(theatre_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+# Create shows
+create table shows (
+    show_id int not null AUTO_INCREMENT PRIMARY KEY ,
+    screen_id int not null,
+    movie_id int not null,
+    theatre_id int not null,
+    show_time time not null ,
+    date date,
+    FOREIGN KEY (screen_id) REFERENCES screens(screen_id),
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id),
+    FOREIGN KEY (theatre_id) REFERENCES theatres(theatre_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table to store information about users
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table to store information about bookings
+CREATE TABLE bookings (
+    booking_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    show_id INT,
+    num_tickets INT,
+    booking_time DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (show_id) REFERENCES shows(show_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table to store seat information for each show
+CREATE TABLE seats (
+    seat_id INT AUTO_INCREMENT PRIMARY KEY,
+    show_id INT,
+    seat_number VARCHAR(10) NOT NULL,
+    is_booked BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (show_id) REFERENCES shows(show_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
+
+# Insert into movies table
+insert into movies ( movie_name, movie_type, movie_language, release_date)
+values ('Tiger Jinda Hai','2D','Hindi','2023-10-10'),
+        ('12th Fail','2D','Hindi','2023-12-30'),
+        ('Baahubali: The Beginning','2D','Hindi','2023-01-26'),
+        ('3 Idiots','2D','Hindi','2023-08-15'),
+        ('PK','2D','Hindi','2023-02-03'),
+        ('Chhichhore','2D','Hindi','2023-05-30');
+
+select * from movies;
+
+# Insert values into cities table
+insert into cities (city_name)
+values ('Nagpur'),('Bhandara'),('Mumbai'),('Hydrabad'),
+('Banglore'),('Chennai'),('Delhi');
+select  * from cities;
+
+# Insert value into theatres table
+INSERT INTO theatres (city_id, theatre_name)
+VALUES
+    (1,'PVR Cinemas'),
+    (2,'INOX Cinemas'),
+    (3,'Cinepolis'),
+    (1,'SPI Cinemas'),
+    (2,'Prasads IMAX');
+select  * from theatres;
+
+# Insert values into screens
+insert into screens (theatre_id, screen_name) values
+('1','Screen 1'),('1','Screen 2'),
+('2','Screen 1'),('2','Screen 2'),
+('3','Screen 1'),('3','Screen 2');
+select  * from screens;
+
+# Insert into shows table
+insert into shows (screen_id, movie_id,theatre_id,show_time,date) values
+(1,1,1,'09:00:00','2024-01-01'), (1,2,2,'11:00:00','2024-01-02'),
+(1,2,1,'15:00:00','2024-01-02'),(1,1,1,'13:00:00','2024-01-01');
+select  * from shows;
+
+# Insert into users table
+insert into users (username, email) values
+('bhagyashri','bhagyashri@gmail.com'),
+ ('pankaj','pankaj@gmail.com'),('bhagyaj','bhagyaj@gmail.com');
+select * from users;
+
+# Insert into seats table
+INSERT INTO seats (show_id, seat_number, is_booked)
+VALUES (1, 'A1', TRUE),(1, 'A2', TRUE),(1, 'B1', FALSE),
+       (2, 'C3', TRUE),(3, 'D2', FALSE),(4, 'E5', TRUE),(4, 'F3', FALSE);
+select * from seats;
+
+# Insert into booking table
+INSERT INTO bookings (user_id, show_id, num_tickets, booking_time)
+VALUES(1, 1, 2, '2024-01-09 12:30:00'),
+    (2, 3, 3, '2024-01-10 10:45:00'),
+    (3, 4, 1, '2024-01-11 08:15:00');
+select * from bookings;
+
+
+# Write a query to list down all the shows on a given date at a
+# given theatre along with their respective show timings.
+
+select m.movie_name, m.movie_type, m.movie_language,
+shows.show_time, shows.date,s.screen_name
+from shows join movies as m on m.movie_id = shows.movie_id
+join screens as s on s.screen_id = shows.screen_id
+where shows.theatre_id='1' and  shows.date = '2024-01-01';
+
+#  Write a query to list down all the shows on a given date at a
+# given theatre along with their respective show timings and specific city.
+select movies.movie_name,shows.show_time ,screens.screen_name,shows.date,cities.city_name
+from movies
+join shows on movies.movie_id=shows.movie_id
+join theatres on theatres.theatre_id = shows.theatre_id
+join cities on cities.city_id = theatres.city_id
+join screens on screens.screen_id = shows.screen_id
+where cities.city_name = 'Nagpur' and shows.date = '2024-01-02';
